@@ -1,0 +1,238 @@
+import org.jetbrains.annotations.Nullable
+
+buildscript {
+    repositories {
+        jcenter()
+        maven { url "https://jitpack.io" }
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+        maven { url "https://maven.google.com" }
+        mavenCentral()
+    }
+    dependencies {
+        classpath gradlePlugins.android
+        classpath gradlePlugins.dexcount
+
+    }
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'com.getkeepsafe.dexcount'
+apply plugin: 'com.github.triplet.play'
+
+repositories {
+
+    maven { url "https://jitpack.io" }
+    maven {
+        url 'http://oss.sonatype.org/content/repositories/snapshots'
+    }
+}
+
+@Nullable
+def getProperties(String fileName) {
+    final Properties properties = new Properties()
+    def file = file(fileName)
+    if (file.exists()) {
+        file.withInputStream { stream -> properties.load(stream) }
+    }
+    return properties
+}
+
+static def getProperty(@Nullable Properties properties, String name) {
+    return properties.getProperty(name) ?: "$name missing"
+}
+
+android {
+    dexOptions {
+        jumboMode = true
+    }
+    compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
+    defaultConfig {
+        minSdkVersion versions.minSdk
+        targetSdkVersion versions.targetSdk
+        versionName versions.name
+        versionCode 6
+        resConfigs "en", "zh-rCN", "fr", "de", "ko", "it", "ru", "nl", "tr", "pl", "ro", "hu", "uk", "bg-rBG", "en-rGB", "vi", "pt-rBR", "es", "en-rNZ", "zh-rTW", "es-rES", "ca", "hr", "en-rAU", "eu-rES", "th", "ja"
+        renderscriptTargetApi 23
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        buildConfigField "boolean", "MULTIDEX_ENABLED", "false"
+        // This API key is provided for convenience. Please go to https://www.last.fm/api/account/create and create your own.
+        buildConfigField("String", "LASTFM_API_KEY", "\"${getProperty(getProperties('../public.properties'), 'LASTFM_API_KEY')}\"")
+        manifestPlaceholders = [CRASHLYTICS_API_KEY: "1465c16ad9a8d608cb028a2b17cf14959f49adf6"]
+        applicationId 'com.lemon.player'
+    }
+    buildTypes {
+
+
+
+        release {
+
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), file('proguard-rules.pro')
+        }
+    }
+       // Ignore useless variants, such as devRelease.
+       variantFilter { variant ->
+
+           def names = variant.flavors*.name
+           def buildTypes = variant.buildType*.name
+
+           def debugFilters = ["paid", "free", 'amazonPaid', "amazonFree"]
+           def relFilters = ["dev"]
+
+           if (System.getenv("TRAVIS")) {
+               relFilters << "dev"
+
+
+           }
+           
+       }
+
+       // Set the version code for release builds
+
+    // Used to enable Java8 features
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    flavorDimensions "all"
+    lintOptions {
+        ignore 'ExtraTranslation', 'MissingTranslation'
+        abortOnError false
+    }
+    packagingOptions {
+        exclude 'META-INF/rxjava.properties'
+    }
+    productFlavors {
+        dev {
+            dimension "all"
+
+            applicationId "com.lemon.player"
+
+           resConfigs "en", "xxhdpi"
+        }
+
+
+      free {
+            dimension "all"
+            applicationId "com.lemon.player"
+        }
+
+
+    }
+}
+
+dependencies {
+    implementation fileTree(include: '*.jar', dir: 'libs')
+    // //////////////////////////////////////////////////////////////////////////
+    // Google libs
+    // /////////////////////////////////////////////////////////////////////////
+    implementation libs.cardView
+    implementation libs.design
+    implementation libs.palette
+    implementation libs.prefCompat
+    implementation libs.prefCompatv14
+    implementation libs.recyclerView
+    implementation libs.supportv4
+    implementation libs.firebaseCore
+    implementation libs.firebaseRemoteConfig
+    implementation libs.constraintLayout
+    implementation libs.chromecast
+    // //////////////////////////////////////////////////////////////////////////
+    // Square libs
+    // /////////////////////////////////////////////////////////////////////////
+    implementation libs.okio
+    implementation libs.okhttp
+    implementation libs.retrofit
+    implementation libs.retrofitGson
+    implementation libs.sqlBrite
+    debugImplementation libs.haha
+    // //////////////////////////////////////////////////////////////////////////
+    // External libs
+    // /////////////////////////////////////////////////////////////////////////
+    implementation libs.navigation
+    implementation libs.recyclerAdapter
+    implementation libs.multiSheetView
+    implementation libs.ccl
+    implementation libs.nanoHttp
+    implementation libs.dashClockApi
+    implementation libs.fastScroll
+    implementation libs.glide
+    implementation libs.glideOkhttp
+    implementation libs.glidePalette
+    implementation libs.permiso
+    implementation libs.rxAndroid
+    implementation libs.rxBinding
+    implementation libs.rxBindingAppCompat
+    implementation libs.rxImagePicker
+    implementation libs.rxJava
+    implementation libs.rxRelay
+    implementation libs.rxBroadcast
+    implementation libs.rxPrefs
+    implementation 'com.tspoon.traceur:traceur:1.0.1'
+    implementation libs.streams
+    implementation libs.materialDialogs
+    implementation libs.materialDialogCommons
+    implementation libs.butterknife
+    annotationProcessor libs.butterknifeAnnotationProcessor
+    implementation libs.dagger
+    annotationProcessor libs.daggerAnnotationProcessor
+    implementation libs.expandableRecyclerView
+    implementation libs.aesthetic
+    implementation libs.billing
+    // //////////////////////////////////////////////////////////////////////////
+    // Multidex (Only used in non-proguard pre-21 builds)
+    // /////////////////////////////////////////////////////////////////////////
+    implementation libs.multiDex
+    // //////////////////////////////////////////////////////////////////////////
+    // Testing
+    // /////////////////////////////////////////////////////////////////////////
+    testImplementation libs.junit
+    testImplementation libs.mockito
+    testImplementation libs.powermock
+    testImplementation libs.powermockjunit
+    testImplementation libs.robolectric
+    testImplementation libs.assertj
+    compile 'com.google.firebase:firebase-ads:11.8.0'
+    androidTestImplementation(libs.espresso) {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    }
+    //noinspection GradleCompatible
+}
+
+configurations.all {
+    resolutionStrategy {
+        eachDependency { details ->
+            // Force all of the primary support libraries to use the same version.
+            if (details.requested.group == 'com.android.support'
+                    && details.requested.name != 'multidex'
+                    && details.requested.name != 'multidex-instrumentation') {
+                details.useVersion versions.supportLib
+            }
+        }
+    }
+}
+
+class Globals {
+    static int versionCode = -1
+}
+
+static int generateVersionCode() {
+    if (Globals.versionCode == -1) {
+        def versionCode = 5000
+        if (System.getenv("TRAVIS_BUILD_NUMBER")) {
+            def travisBuildNumber = System.getenv("TRAVIS_BUILD_NUMBER").toInteger()
+            println "Travis build number: $travisBuildNumber"
+            versionCode += travisBuildNumber
+        }
+        println "Version code: $versionCode"
+        Globals.versionCode = versionCode
+        return versionCode
+    }
+    return Globals.versionCode
+}
+
+
+
+

@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "1052974134154",
+    "firebase_url": "https://lemonplayer-20efb.firebaseio.com",
+    "project_id": "lemonplayer-20efb",
+    "storage_bucket": "lemonplayer-20efb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1052974134154:android:f0ba7004c03d43b9",
+        "android_client_info": {
+          "package_name": "com.lemon.player"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1052974134154-0r3dtokc79cdm39ecaqfk39o8m74ktjq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBArpE2h-beUoSmQ1u59D5zH4o2kYG2JrQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
